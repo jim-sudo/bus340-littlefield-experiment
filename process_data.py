@@ -35,7 +35,7 @@ def main():
     df = pd.read_excel(latest_file, sheet_name='Plots Data')
 
     # Get rid of the first three rows. They're kinda weird.
-    # df = df.iloc[3:]
+    df = df.iloc[3:]
 
     # Clean data (drop empty rows for regression)
     df = df.dropna(subset=['Unnamed: 2', 'Days'])
