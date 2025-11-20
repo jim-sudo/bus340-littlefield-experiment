@@ -128,12 +128,12 @@ def main():
     equation = f'y = {coefficient_1:.4f}x + {intercept:.4f}'
 
     plt.figure()
-    plt.scatter(X, Y, color='blue', label=f'Actual Demand')
+    plt.scatter(X, Y, color='blue', label=f'Demand, latest = {Y.iloc[-1]}')
     plt.plot(future_X, model.predict(future_X), color='red', label=f'Trend: {equation}')
 
     plt.xlabel('Day Number')
     plt.ylabel('Predicted Demand')
-    plt.title('Demand Forecast: Full History')
+    plt.title('Day {max_days} Demand Forecast: Full History')
     plt.legend()
     plt.savefig(f'./plots/d{max_days}_2_demand_plot.png')
     plt.close()
