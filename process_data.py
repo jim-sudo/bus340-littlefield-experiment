@@ -20,7 +20,7 @@ def main():
     # 1. Find the newest Excel file in a folder
     folder_path = r'/home/lenovo/Downloads'
     files = glob.glob(os.path.join(folder_path, '*.xlsx'))
-    latest_file = max(files, key=os.path.getctime)
+    latest_file = max(files, key=os.path.getmtime)
 
     print(f"Processing file: {latest_file}")
 
@@ -38,7 +38,7 @@ def main():
     df = df.iloc[3:]
 
     # Clean data (drop empty rows for regression)
-    df = df.dropna(subset=['Unnamed: 2', 'Days'])
+    # df = df.dropna(subset=['Unnamed: 2', 'Days'])
 
     X = df[['Days']] # Double brackets for 2D array
     Y = df['Unnamed: 2']
@@ -69,21 +69,36 @@ def main():
     print(f"Demand Forecast for 12 days: {demand_forecast_12}")
 
 
-    plt.plot(X, util1, color='green', label=f'S1 latest = {util1.iloc[-1]}')
-    plt.plot(X, util2, color='red', label=f'S2 latest = {util2.iloc[-1]}')
-    plt.plot(X, util3, color='purple', label=f'S3 latest = {util3.iloc[-1]}')
+    
+
+    
+
+
+    # Plotting the lead time
+    plt.plot(X, lead_time, color='pink', label=f'Lead Time, latest = {lead_time.iloc[-1]}')
     plt.xlabel('Days')
-    plt.ylabel('Utilization')
-    plt.title(f'Day 0-{max_days} Utilization (lower is better)')
+    plt.ylabel('Lead Time')
+    plt.title(f'Day 0-{max_days} Lead Time')
     plt.legend()
-    plt.savefig(f'./plots/d{max_days}_1_utilization_plot.png')
-    # # plt.show()
+    plt.savefig(f'./plots/d{max_days}_4_lead_time_plot.png')
+    # plt.show()
     plt.close()
 
 
-    plt.plot(X, kit_in_queue1, color='green', label=f'S1 latest = {kit_in_queue1.iloc[-1]}')
-    plt.plot(X, kit_in_queue2, color='red', label=f'S2 latest = {kit_in_queue2.iloc[-1]}')
-    plt.plot(X, kit_in_queue3, color='purple', label=f'S3 latest = {kit_in_queue3.iloc[-1]}')
+    # Plotting the completed jobs
+    plt.plot(X, completed_jobs, color='orange', label=f'Completed Jobs, latest = {completed_jobs.iloc[-1]}')
+    plt.xlabel('Days')
+    plt.ylabel('Completed Jobs')
+    plt.title(f'Day 0-{max_days} Completed Jobs (higher is better)')
+    plt.legend()
+    plt.savefig(f'./plots/d{max_days}_5_completed_jobs_plot.png')
+    # plt.show()
+    plt.close()
+
+    # Plotting average kits in queue
+    plt.plot(X, kit_in_queue1, color='green', label=f'S1, latest = {kit_in_queue1.iloc[-1]}')
+    plt.plot(X, kit_in_queue2, color='red', label=f'S2, latest = {kit_in_queue2.iloc[-1]}')
+    plt.plot(X, kit_in_queue3, color='purple', label=f'S3, latest = {kit_in_queue3.iloc[-1]}')
     plt.xlabel('Days')
     plt.ylabel('Avg Kits In Queue')
     plt.title(f'Day 0-{max_days} Avg Kits In Queue (lower is better)')
@@ -93,26 +108,16 @@ def main():
     plt.close()
 
 
-    # Let's plot the data and the regression line
-    # plt.scatter(X, Y, color='blue', label='Data Points')
-    plt.plot(X, lead_time, color='pink', label=f'Lead Time latest = {lead_time.iloc[-1]}')
+    # Plot utilization of the three stations
+    plt.plot(X, util1, color='green', label=f'S1, latest = {util1.iloc[-1]}')
+    plt.plot(X, util2, color='red', label=f'S2, latest = {util2.iloc[-1]}')
+    plt.plot(X, util3, color='purple', label=f'S3, latest = {util3.iloc[-1]}')
     plt.xlabel('Days')
-    plt.ylabel('Lead Time')
-    plt.title(f'Day 0-{max_days} Lead Time')
+    plt.ylabel('Utilization')
+    plt.title(f'Day 0-{max_days} Utilization (lower is better)')
     plt.legend()
-    plt.savefig(f'./plots/d{max_days}_4_lead_time_plot.png')
-    # plt.show()
-    plt.close()
-
-    # Let's plot the data and the regression line
-    # plt.scatter(X, Y, color='blue', label='Data Points')
-    plt.plot(X, completed_jobs, color='orange', label=f'Completed Jobs latest {completed_jobs.iloc[-1]}')
-    plt.xlabel('Days')
-    plt.ylabel('Completed Jobs')
-    plt.title(f'Day 0-{max_days} Completed Jobs (higher is better)')
-    plt.legend()
-    plt.savefig(f'./plots/d{max_days}_5_completed_jobs_plot.png')
-    # plt.show()
+    plt.savefig(f'./plots/d{max_days}_1_utilization_plot.png')
+    # # plt.show()
     plt.close()
 
     # 1. Capture the values
@@ -128,7 +133,7 @@ def main():
     equation = f'y = {slope:.4f}x + {intercept:.4f}'
 
     # 3. Plot
-    plt.scatter(X, Y, color='blue', label=f'Demand latest = {Y.iloc[-1]}')
+    plt.scatter(X, Y, color='blue', label=f'Demand, latest = {Y.iloc[-1]}')
     # Pass the equation into the label here:
     plt.plot(future_X, model.predict(future_X), color='red', label=f'Trend: {equation}')
 

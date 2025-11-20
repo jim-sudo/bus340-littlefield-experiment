@@ -10,6 +10,7 @@ import os
 
 def main():
    print('Let\'s do this!')
+   gui.moveTo(34, 68)
    gui.click(34, 68)
    time.sleep(30)
    gui.click(298, 134)
