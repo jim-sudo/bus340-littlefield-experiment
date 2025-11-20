@@ -105,7 +105,7 @@ def main():
     plt.plot(X_recent, kit_in_queue3_recent, color='purple', label=f'S3 Latest: {kit_in_queue3_recent.iloc[-1]}')
     plt.xlabel('Days')
     plt.ylabel('Avg Kits In Queue')
-    plt.title(f'Days {max_days - 50}-{max_days} Avg Kits Queue (Last 50 Days)')
+    plt.title(f'Days {max_days - 50}-{max_days} Avg Kits In Queue (60 kits in one job)')
     plt.legend()
     plt.savefig(f'./plots/d{max_days}_3_avg_kit_plot.png')
     plt.close()
@@ -133,7 +133,7 @@ def main():
 
     plt.xlabel('Day Number')
     plt.ylabel('Predicted Demand')
-    plt.title('Day {max_days} Demand Forecast: Full History')
+    plt.title(f'Day {max_days} Demand Forecast: Full History')
     plt.legend()
     plt.savefig(f'./plots/d{max_days}_2_demand_plot.png')
     plt.close()
