@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
+import json
 
 def main():
     # start_day = 0
@@ -150,4 +151,13 @@ def main():
     plt.close()
 
 
-    print(kit_in_queue1.iloc[-1])
+    # Save the critical data to a JSON file
+    sim_data = {
+        "current_day": int(max_days), # Convert to int just in case
+        "status": "Success"
+    }
+
+    with open("sim_state.json", "w") as f:
+        json.dump(sim_data, f)
+        
+    print(f"Saved simulation state (Day {max_days}) to sim_state.json")

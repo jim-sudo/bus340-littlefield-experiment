@@ -3,6 +3,7 @@ import asyncio
 import os
 import glob
 import discord_token
+import json
 
 # --- CONFIGURATION ---
 BOT_TOKEN = discord_token.token()
@@ -24,6 +25,16 @@ async def send_daily_report():
         return
 
     print(f"Logged in as {client.user}. Preparing to send files...")
+
+
+    # 1. Read the Shared State File
+    current_day = "Unknown" # Default if file is missing
+    try:
+        with open("sim_state.json", "r") as f:
+            data = json.load(f)
+            current_day = data.get("current_day", "Unknown")
+    except FileNotFoundError:
+        print("Warning: sim_state.json not found.")
 
     # 1. Find the plots (We grab all .png files in the plots folder)
     # You can adjust this to find specific files if you want
@@ -53,14 +64,14 @@ async def send_daily_report():
     # 3. Send the Message
     try:
         await channel.send(
-            content="**📊 New Littlefield Analysis Update**\nHere are the latest charts:",
+            # vvvvv SEE HERE vvvvv
+            content=f"**📊 Littlefield Update: Day {current_day}**\nHere are the latest charts:",
             files=files_to_send
         )
-        print(f"Successfully sent {len(files_to_send)} charts.")
+        print("Successfully sent charts.")
     except Exception as e:
         print(f"Failed to send charts: {e}")
-    
-    # 4. Close the connection
+
     await client.close()
 
 # --- RUNNER ---
