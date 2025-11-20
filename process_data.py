@@ -4,25 +4,19 @@ import glob
 import os
 import matplotlib.pyplot as plt
 import numpy as np
-import matplotlib.pyplot as plt
 import sys
 import json
 
 def main():
-    # start_day = 0
-    # end_day = 150
-    # args = False
-
-    # if (sys.argv[1].isdigit() and sys.argv[2].isdigit()):
-    #     args = True
-    #     start_day = int(sys.argv[1])
-    #     end_day = int(sys.argv[2])
-
-    # 1. Find the newest Excel file in a folder
+    # 1. Find the newest Excel file
     folder_path = r'/home/lenovo/Downloads'
     files = glob.glob(os.path.join(folder_path, '*.xlsx'))
-    latest_file = max(files, key=os.path.getmtime)
+    
+    if not files:
+        print("No Excel files found.")
+        return
 
+    latest_file = max(files, key=os.path.getmtime) # Changed to getmtime for safety
     print(f"Processing file: {latest_file}")
 
     plot_dir = './plots'
@@ -30,34 +24,51 @@ def main():
         os.makedirs(plot_dir)
         print(f"Created directory: {plot_dir}")
 
-
     # 2. Read the data
-    # Replace 'Sheet1', 'TargetCol', and 'InputCol' with your actual names
-    df = pd.read_excel(latest_file, sheet_name='Plots Data')
+    # Using header=3 is safer given your previous file structure issues
+    df = pd.read_excel(latest_file, sheet_name='Plots Data', header=3)
+    
+    # Clean data (drop completely empty rows)
+    df = df.dropna(how='all')
+    
+    # Rename columns to match your logic (optional but helps readability)
+    # Assuming column positions based on your previous code:
+    # 'Days' is usually auto-detected if header=3 is used.
+    
+    # Ensure numeric data for regression
+    df['Days'] = pd.to_numeric(df['Days'], errors='coerce')
+    df = df.dropna(subset=['Days'])
 
-    # Get rid of the first three rows. They're kinda weird.
-    df = df.iloc[3:]
+    # --- FULL DATASETS (For Regression) ---
+    X = df[['Days']] 
+    Y = df['Jobs accepted 1'] # Was Unnamed: 2
+    max_days = int(max(df['Days']))
 
-    # Clean data (drop empty rows for regression)
-    # df = df.dropna(subset=['Unnamed: 2', 'Days'])
+    # --- RECENT DATASETS (For Visual Plots - Last 50 Days) ---
+    # We verify if we have more than 50 days. If so, we slice the last 50.
+    if len(df) > 50:
+        recent_df = df.tail(50)
+    else:
+        recent_df = df
 
-    X = df[['Days']] # Double brackets for 2D array
-    Y = df['Unnamed: 2']
-    util1 = df['Unnamed: 4']
-    util2 = df['Unnamed: 7']
-    util3 = df['Unnamed: 10']
-    kit_in_queue1 = df['Station 1']
-    kit_in_queue2 = df['Station 2']
-    kit_in_queue3 = df['Station 3']
-    lead_time = df['Unnamed: 14']
-    completed_jobs = df['Completed jobs']
-    max_days = max(df['Days'])
+    X_recent = recent_df[['Days']]
+    
+    # Map variables to the RECENT dataframe for plotting
+    lead_time_recent = recent_df['Lead time 1'] # Was Unnamed: 14
+    completed_jobs_recent = recent_df['Jobs out 1'] # Was Completed jobs
+    
+    kit_in_queue1_recent = recent_df['kits 1'] # Was Station 1
+    kit_in_queue2_recent = recent_df['kits 2'] # Was Station 2
+    kit_in_queue3_recent = recent_df['kits 3'] # Was Station 3
+    
+    util1_recent = recent_df['Utilization 1'] # Was Unnamed: 4
+    util2_recent = recent_df['Utilization 2'] # Was Unnamed: 7
+    util3_recent = recent_df['Utilization 3'] # Was Unnamed: 10
 
-    # 3. Perform Regression
+    # --- REGRESSION MATH (Uses FULL History X & Y) ---
     model = LinearRegression()
     model.fit(X, Y)
-
-    # 4. Get Coefficients
+    
     intercept = model.intercept_
     coefficient_1 = model.coef_[0]
 
@@ -65,95 +76,71 @@ def main():
     print(f"Coefficient 1: {coefficient_1}")
     print(f"Max Days: {max_days}")
 
+    # --- PLOTTING (Uses RECENT Data) ---
 
-    demand_forecast_12 = intercept + coefficient_1 * (max_days + 12)
-    print(f"Demand Forecast for 12 days: {demand_forecast_12}")
-
-
-    
-
-    
-
-
-    # Plotting the lead time
-    plt.plot(X, lead_time, color='pink', label=f'Lead Time, latest = {lead_time.iloc[-1]}')
+    # 1. Lead Time (Recent)
+    plt.figure()
+    plt.plot(X_recent, lead_time_recent, color='pink', label=f'Latest: {lead_time_recent.iloc[-1]}')
     plt.xlabel('Days')
     plt.ylabel('Lead Time')
-    plt.title(f'Day 0-{max_days} Lead Time')
+    plt.title(f'Days {max_days - 50}-{max_days} Lead Time')
     plt.legend()
     plt.savefig(f'./plots/d{max_days}_4_lead_time_plot.png')
-    # plt.show()
     plt.close()
 
-
-    # Plotting the completed jobs
-    plt.plot(X, completed_jobs, color='orange', label=f'Completed Jobs, latest = {completed_jobs.iloc[-1]}')
+    # 2. Completed Jobs (Recent)
+    plt.figure()
+    plt.plot(X_recent, completed_jobs_recent, color='orange', label=f'Latest: {completed_jobs_recent.iloc[-1]}')
     plt.xlabel('Days')
     plt.ylabel('Completed Jobs')
-    plt.title(f'Day 0-{max_days} Completed Jobs (higher is better)')
+    plt.title(f'Days {max_days - 50}-{max_days} Completed Jobs')
     plt.legend()
     plt.savefig(f'./plots/d{max_days}_5_completed_jobs_plot.png')
-    # plt.show()
     plt.close()
 
-    # Plotting average kits in queue
-    plt.plot(X, kit_in_queue1, color='green', label=f'S1, latest = {kit_in_queue1.iloc[-1]}')
-    plt.plot(X, kit_in_queue2, color='red', label=f'S2, latest = {kit_in_queue2.iloc[-1]}')
-    plt.plot(X, kit_in_queue3, color='purple', label=f'S3, latest = {kit_in_queue3.iloc[-1]}')
+    # 3. Average Kits in Queue (Recent)
+    plt.figure()
+    plt.plot(X_recent, kit_in_queue1_recent, color='green', label=f'S1 Latest: {kit_in_queue1_recent.iloc[-1]}')
+    plt.plot(X_recent, kit_in_queue2_recent, color='red', label=f'S2 Latest: {kit_in_queue2_recent.iloc[-1]}')
+    plt.plot(X_recent, kit_in_queue3_recent, color='purple', label=f'S3 Latest: {kit_in_queue3_recent.iloc[-1]}')
     plt.xlabel('Days')
     plt.ylabel('Avg Kits In Queue')
-    plt.title(f'Day 0-{max_days} Avg Kits In Queue (lower is better)')
+    plt.title(f'Days {max_days - 50}-{max_days} Avg Kits Queue (Last 50 Days)')
     plt.legend()
     plt.savefig(f'./plots/d{max_days}_3_avg_kit_plot.png')
-    # plt.show()
     plt.close()
 
-
-    # Plot utilization of the three stations
-    plt.plot(X, util1, color='green', label=f'S1, latest = {util1.iloc[-1]}')
-    plt.plot(X, util2, color='red', label=f'S2, latest = {util2.iloc[-1]}')
-    plt.plot(X, util3, color='purple', label=f'S3, latest = {util3.iloc[-1]}')
+    # 4. Utilization (Recent)
+    plt.figure()
+    plt.plot(X_recent, util1_recent, color='green', label=f'S1 Latest: {util1_recent.iloc[-1]}')
+    plt.plot(X_recent, util2_recent, color='red', label=f'S2 Latest: {util2_recent.iloc[-1]}')
+    plt.plot(X_recent, util3_recent, color='purple', label=f'S3 Latest: {util3_recent.iloc[-1]}')
     plt.xlabel('Days')
     plt.ylabel('Utilization')
-    plt.title(f'Day 0-{max_days} Utilization (lower is better)')
+    plt.title(f'Days {max_days - 50}-{max_days} Utilization')
     plt.legend()
     plt.savefig(f'./plots/d{max_days}_1_utilization_plot.png')
-    # # plt.show()
     plt.close()
 
-    # 1. Capture the values
-    slope = model.coef_[0]
-    intercept = model.intercept_
-
-    # 1. Create a "Future" X timeline (e.g., Day 0 to Day 150)
-    # This lets us draw the line past the current day
+    # --- DEMAND PLOT (Uses FULL History X & Y) ---
+    
     future_X = np.arange(0, 151).reshape(-1, 1)
+    equation = f'y = {coefficient_1:.4f}x + {intercept:.4f}'
 
-    # 2. Create a label string
-    # The 'f' string allows us to insert the variables directly
-    equation = f'y = {slope:.4f}x + {intercept:.4f}'
-
-    # 3. Plot
-    plt.scatter(X, Y, color='blue', label=f'Demand, latest = {Y.iloc[-1]}')
-    # Pass the equation into the label here:
+    plt.figure()
+    plt.scatter(X, Y, color='blue', label=f'Actual Demand')
     plt.plot(future_X, model.predict(future_X), color='red', label=f'Trend: {equation}')
-
-    plt.legend() # This will now show the line color next to the equation
-
-
 
     plt.xlabel('Day Number')
     plt.ylabel('Predicted Demand')
-    plt.title('Demand Forecast: Day 0 to 150')
+    plt.title('Demand Forecast: Full History')
     plt.legend()
     plt.savefig(f'./plots/d{max_days}_2_demand_plot.png')
-    # plt.show()
     plt.close()
 
-
-    # Save the critical data to a JSON file
+    # Save state
     sim_data = {
-        "current_day": int(max_days), # Convert to int just in case
+        "current_day": int(max_days),
         "status": "Success"
     }
 
@@ -161,3 +148,6 @@ def main():
         json.dump(sim_data, f)
         
     print(f"Saved simulation state (Day {max_days}) to sim_state.json")
+
+if __name__ == "__main__":
+    main()
