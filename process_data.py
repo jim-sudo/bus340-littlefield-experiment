@@ -12,7 +12,7 @@ def main():
     # 1 = Growth (Day 0-150)
     # 2 = Stable (Day 151-180)
     # 3 = Decline (Day 181-220)
-    scatter_scope = 3
+    scatter_scope = 1
     
     # 1. Find the newest Excel file
     folder_path = r'/home/lenovo/Downloads'
@@ -186,3 +186,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
