@@ -12,7 +12,7 @@ def main():
     # 1 = Growth (Day 0-150)
     # 2 = Stable (Day 151-180)
     # 3 = Decline (Day 181-220)
-    scatter_scope = 1 
+    scatter_scope = 3
     
     # 1. Find the newest Excel file
     folder_path = r'/home/lenovo/Downloads'
@@ -66,13 +66,20 @@ def main():
         intercept = model.intercept_
         coefficient_1 = model.coef_[0]
         
+        # Use .item() or float() to ensure we are formatting a number, not an array
+        # This fixes the "Unknown format code 'f' for object of type 'str'" error
+        if isinstance(intercept, (np.ndarray, np.generic)):
+             intercept = intercept.item()
+        if isinstance(coefficient_1, (np.ndarray, np.generic)):
+             coefficient_1 = coefficient_1.item()
+
         print(f"Scope {scatter_scope} ({scope_start}-{scope_end}) Regression:")
         print(f"Intercept: {intercept:.4f}")
         print(f"Slope: {coefficient_1:.4f}")
     else:
         print(f"No data yet for Scope {scatter_scope}. Skipping regression.")
-        intercept = 0
-        coefficient_1 = 0
+        intercept = 0.0
+        coefficient_1 = 0.0
 
     # --- RECENT DATA (For Operational Plots - Last 50 Days) ---
     if len(df) > 50:
