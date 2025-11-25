@@ -52,6 +52,7 @@ def main():
         recent_df = df
 
     X_recent = recent_df[['Days']]
+    Y_recent = recent_df[['Jobs accepted 1']]
     
     # Map variables to the RECENT dataframe for plotting
     lead_time_recent = recent_df['Lead time 1'] # Was Unnamed: 14
@@ -64,6 +65,7 @@ def main():
     util1_recent = recent_df['Utilization 1'] # Was Unnamed: 4
     util2_recent = recent_df['Utilization 2'] # Was Unnamed: 7
     util3_recent = recent_df['Utilization 3'] # Was Unnamed: 10
+
 
     # --- REGRESSION MATH (Uses FULL History X & Y) ---
     model = LinearRegression()
@@ -128,8 +130,8 @@ def main():
     equation = f'y = {coefficient_1:.4f}x + {intercept:.4f}'
 
     plt.figure()
-    plt.scatter(X, Y, color='blue', label=f'Demand, latest = {Y.iloc[-1]}')
-    plt.plot(future_X, model.predict(future_X), color='red', label=f'Trend: {equation}')
+    plt.scatter(X_recent, Y_recent, color='blue', label=f'Demand, latest = {Y_recent.iloc[-1]}')
+    plt.plot(X_recent, model.predict(X_recent), color='red', label=f'Trend: {equation}')
 
     plt.xlabel('Day Number')
     plt.ylabel('Predicted Demand')
