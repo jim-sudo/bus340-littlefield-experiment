@@ -155,7 +155,12 @@ def main():
 
         plt.figure()
         # Plot the ACTUAL data dots for the scope
-        plt.scatter(X_scope, Y_scope, color='blue', label='Actual Demand')
+        # Get the latest value from the Y_scope Series. 
+        # Note: Y_scope is a DataFrame because of the double bracket [['Jobs accepted 1']] selection earlier
+        # We use .iloc[-1].item() to get the scalar value safely.
+        latest_demand_val = Y_scope.iloc[-1].item()
+        
+        plt.scatter(X_scope, Y_scope, color='blue', label=f'Demand, latest = {latest_demand_val:.2f}')
         # Plot the REGRESSION line for the scope
         plt.plot(future_X, model.predict(future_X), color='red', label=f'Trend: {equation}')
 
